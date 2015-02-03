@@ -26,10 +26,10 @@
 5.  Where is the file ``xxxxxx``
     >   answer
 
-6.  How many files with ``gnu`` in its name are in ``dir``
+6.  How many files with ``gnu`` in its name are in ``/usr/src``
     >   answer
 
-7.  How many files contain ``gpl`` inside in ``dir``
+7.  How many files contain ``gpl`` inside in ``/usr/src``
     >   answer
 
 8.  What does the ``cut`` command do?
@@ -57,6 +57,9 @@
     You may look in the internet for ideas, but please indicate the source of any code you use
     Save this script as ``find_duplicates.sh`` in this directory and commit your changes to github
 
-16. How many unique images are in the ``sipi_images`` folder?
+16. What is the meaning of ``#! /bin/bash`` at the start of scripts?
+    >   answer
+
+17. How many unique images are in the ``sipi_images`` folder?
     >   answer
     
