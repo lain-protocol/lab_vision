@@ -1,0 +1,19 @@
+
+imgLow = imread('dog.bmp');
+imgHigh = imread('cat.bmp');
+
+figure;
+imshow(imgLow);
+figure;
+imshow(imgHigh);
+
+imgLow2 = impyramid(imgLow, 'reduce');
+imgLow2 = impyramid(imgLow2, 'expand');
+
+imgHigh2 = impyramid(imgHigh, 'reduce');
+imgHigh2 = impyramid(imgHigh2, 'expand');
+imgHigh3 = imgHigh - imgHigh2;
+
+hybrid = imgHigh3 + imgLow2;
+
+figure;
