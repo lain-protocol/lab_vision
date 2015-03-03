@@ -1,6 +1,6 @@
 
-imgLow = imread('dog.bmp');
-imgHigh = imread('cat.bmp');
+imgLow = imread('imgHomeworkA.png');
+imgHigh = imread('imgHomeworkB.png');
 
 figure;
 imshow(imgLow);
@@ -10,6 +10,8 @@ imshow(imgHigh);
 imgLow2 = impyramid(imgLow, 'reduce');
 imgLow2 = impyramid(imgLow2, 'reduce');
 imgLow2 = impyramid(imgLow2, 'reduce');
+imgLow2 = impyramid(imgLow2, 'reduce');
+imgLow2 = impyramid(imgLow2, 'expand');
 imgLow2 = impyramid(imgLow2, 'expand');
 imgLow2 = impyramid(imgLow2, 'expand');
 imgLow2 = impyramid(imgLow2, 'expand');
@@ -17,13 +19,15 @@ imgLow2 = impyramid(imgLow2, 'expand');
 imgHigh2 = impyramid(imgHigh, 'reduce');
 imgHigh2 = impyramid(imgHigh2, 'reduce');
 imgHigh2 = impyramid(imgHigh2, 'reduce');
+imgHigh2 = impyramid(imgHigh2, 'reduce');
 imgHigh2 = impyramid(imgHigh2, 'expand');
 imgHigh2 = impyramid(imgHigh2, 'expand');
 imgHigh2 = impyramid(imgHigh2, 'expand');
-imgHigh = imgHigh(:, 1:409,:);
+imgHigh2 = impyramid(imgHigh2, 'expand');
+imgHigh = imgHigh(1:497, 1:497,:);
 imgHigh3 = imgHigh  - imgHigh2;
 
-hybrid = 1.5*imgHigh3 + imgLow2;
+hybrid = 1.4*imgHigh3 + imgLow2;
 figure;
 imshow(hybrid);
 
@@ -110,3 +114,22 @@ C = log(C+1);
 subplot(2,5,10)
 imshow(C,[]), colormap(jet(64)), colorbar;
 title('DCT - Hibrida');
+
+figure;
+%subplot(3,2,1);
+figure; imshow(hybrid);
+hybrid = impyramid(hybrid, 'reduce');
+%subplot(3,2,2);
+figure; imshow(hybrid);
+hybrid = impyramid(hybrid, 'reduce');
+%subplot(3,2,3);
+figure; imshow(hybrid);
+hybrid = impyramid(hybrid, 'reduce');
+%subplot(3,2,4);
+figure; imshow(hybrid);
+hybrid = impyramid(hybrid, 'reduce');
+%subplot(3,2,5);
+figure; imshow(hybrid);
+hybrid = impyramid(hybrid, 'reduce');
+
+
