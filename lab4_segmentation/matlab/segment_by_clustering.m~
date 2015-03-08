@@ -36,7 +36,7 @@ elseif strcmp(clustering_method,'hierarchical')
     my_segmentation = seg_method_hierarchical( img, number_of_clusters, feature_space, 0.20 );
     
 elseif strcmp(clustering_method,'watershed')
-    my_segmentation = seg_method_watershed( img, number_of_clusters, feature_space);
+
     
     
 
