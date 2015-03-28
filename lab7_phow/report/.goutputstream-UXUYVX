@@ -1,0 +1,211 @@
+\documentclass[10pt,two column,letter paper]{article}
+\usepackage{cvpr}
+\usepackage{times}
+\usepackage{epsfig}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{cite}
+
+% Include other packages here, before hyperref.
+
+% If you comment hyperref and then uncomment it, you should delete
+% egpaper.aux before re-running latex.  (Or just hit 'q' on the first latex
+% run, let it finish, and you should be clear).
+\usepackage[breaklinks=true,bookmarks=false]{hyperref}
+
+\cvprfinalcopy % *** Uncomment this line for the final submission
+
+\def\cvprPaperID{****} % *** Enter the CVPR Paper ID here
+\def\httilde{\mbox{\tt\raisebox{-.5ex}{\symbol{126}}}}
+
+% Pages are numbered in submission mode, and unnumbered in camera-ready
+%\ifcvprfinal\pagestyle{empty}\fi
+\setcounter{page}{4321}
+\begin{document}
+
+%%%%%%%%% TITLE
+\title{Laboratory 6 - Textons and classifiers}
+
+\author{Ricardo MENDOZA-LEON\\
+Universidad de los Andes\\
+Bogot\'{a} Colombia\\
+{\tt\small ra.mendoza35@uniandes.edu.co}
+}
+
+\maketitle
+%\thispagestyle{empty}
+
+%%%%%%%%% ABSTRACT
+\begin{abstract}
+Image content classification in an important task wit several applications in computer vision 
+problems. Results of several experiments in multiclass image classification using textons 
+to classify textured images are reported. Two different classifiers: nearest-neighborhood (NN) 
+and random forest, were trained with k-means quantized histograms of texton responses on 750
+train images, and tested in a dataset of 250 images. Results showed better scores for 
+random forest classifiers, specially when the number of trees was increased.
+However, NN classifier performance was comparable, confirming that a suitable representation
+for the problem at hand is key.
+\end{abstract}
+
+%%%%%%%%% BODY TEXT
+\section{Dataset}
+The dataset used, obtained from Ponce Group, comprised 25 natural (grayscale) texture categories, each one with 30 images for training
+and 10 for testing. Texture orientation accounted for most of the intraclass variability observed in this dataset. 
+
+
+\section{Methods}
+The classification pipeline comprised the following steps.
+
+A) Apply a filter bank with 8 oriented second-derivative even-filters and 8 oriented odd-filters (Hilber transform of the later)
+in two scales, for a total of 32 dimensions to represent each pixel.
+
+B) Build a texton dictionary to quantize pixel representations using k-means clustering. To build this dictionary a fixed number of pixels in the
+filter bank response space are sampled in each image. Test were performed using 50 and 5000 samples ($sp$)
+per image and also different dictionary sizes ($k$) were explored using $k=$50 and 100.
+
+C) Create a histogram of texton representation for image. This is accomplished by applying the filter bank to the image, labeling each pixel in the
+response space by assigning the label of the closest texton (centroid) in the dictionary and finally, creating the texton histogram by aggregating
+the labeled image pixels.
+
+D) Train a classifier, using as examples 750 histogram and labels corresponding to the train set images. Two kinds of classifiers were tested. 
+The first, was a Nearest-Neighborhood (NN) classifier, whose model is given directly by the train histograms, without the need for a explicit training procedure.
+Classification using NN is carried-out by looking for the closest model-histogram to the histogram to classify. Given that images are represented as
+histograms, the histogram interception distance was used as a measure of proximity between histogram pairs. The second classifier used was the Random Forest classifier,
+which trains a number of binary-tree structures and assigns simple separation criteria at each node to maximize the
+information gain on the input example distribution. Many parameters such as tree-depth and separation criteria space, among others, define the behavior
+of this models. For the experiments, models with 20 and 80 random trees were trained.
+
+E) Finally, each image in the test set is represented as a texton histogram following the steps in C, and its class predicted by the classifier.
+Results are collected in a confusion matrix, and after normalization, the global performance is computed as the mean value of the diagonal terms in the matrix.
+
+\section{Results and discussion}
+Figure ~\ref{fig:bar_all} summarizes the global performance for all the experiments over the two dictionary sizes $k$. First it can be observed an  
+performance increase related with a bigger dictionary size. Also, increasing the sampling (Sample) and, in the case of the random forest classifier (RF) increasing 
+the number of trees, also improved the performance. Figures for confusion matrices are shown in 
+~\ref{fig:m1_NN} - ~\ref{fig:m4_NN} and ~\ref{fig:m3_NN} - ~\ref{fig:m6_NN} for nearest neighborhood with sp=50 and sp=5000 respectibly,
+~\ref{fig:m1_RF_1} - ~\ref{fig:m4_RF_1} and ~\ref{fig:m3_RF_1} - ~\ref{fig:m6_RF_1} for random forest classifier with 20 trees and sp=50 and sp=5000 respectably, and
+~\ref{fig:m1_RF_2} - ~\ref{fig:m4_RF_2} and ~\ref{fig:m3_RF_2} - ~\ref{fig:m6_RF_2} for random forest classifier with 80 trees and sp=50 and sp=5000 respectably.
+
+The random forest classifier was consistently the best classifier in the tests. Begin a richer model, it can define 
+separation regions that generalize better the distribution of representation histograms in the train set. However,
+the difference between the to classifiers was smaller than expected (best performance was NN=0.69 vs RF=0.77). 
+
+An important difference between the classifiers was training and evaluation time. In the case of nearest neighborhood, the train time is 0
+(given the features are already extracted). However, the difference in classification time is wide; NN has $O(n^2)$ order and RF is approximatelly $O(log(n))$, $n$ being
+the number of train examples. Given that intraclass variability is small, this classification task can be
+considered as easy, however, its small size increased the challenge.
+
+Finally, confusion matrices showed that class 23 (knit) had the lowest classification scores in all the experiments, because is often confused with
+classes 22 (fur) and 24 (corduroy) that look very close. Posible improvements include: extend the filterbank, addign centered gaussian filters, increasing the number 
+of orientations and scales, and including additional spatial information in the representation of the pixels, for example its coordinates.   
+
+\begin{figure}[t]
+\begin{center}
+\includegraphics[width=0.9\linewidth]{bar_all.png}
+\end{center}
+   \caption{summary results for all tests}
+\label{fig:bar_all}
+\end{figure}
+
+\begin{figure}[t]
+\begin{center}
+\includegraphics[width=0.9\linewidth]{m1_NN.png}
+\end{center}
+   \caption{}
+\label{fig:m1_NN}
+\end{figure}
+
+\begin{figure}[t]
+\begin{center}
+\includegraphics[width=0.9\linewidth]{m4_NN.png}
+\end{center}
+   \caption{}
+\label{fig:m4_NN}
+\end{figure}
+
+\begin{figure}[t]
+\begin{center}
+\includegraphics[width=0.9\linewidth]{m3_NN.png}
+\end{center}
+   \caption{}
+\label{fig:m3_NN}
+\end{figure}
+
+\begin{figure}[t]
+\begin{center}
+\includegraphics[width=0.9\linewidth]{m6_NN.png}
+\end{center}
+   \caption{}
+\label{fig:m6_NN}
+\end{figure}
+
+\begin{figure}[t]
+\begin{center}
+\includegraphics[width=0.9\linewidth]{m1_RF-1.png}
+\end{center}
+   \caption{}
+\label{fig:m1_RF_1}
+\end{figure}
+
+\begin{figure}[t]
+\begin{center}
+\includegraphics[width=0.9\linewidth]{m4_RF-1.png}
+\end{center}
+   \caption{}
+\label{fig:m4_RF_1}
+\end{figure}
+
+\begin{figure}[t]
+\begin{center}
+\includegraphics[width=0.9\linewidth]{m3_RF-1.png}
+\end{center}
+   \caption{}
+\label{fig:m3_RF_1}
+\end{figure}
+
+\begin{figure}[t]
+\begin{center}
+\includegraphics[width=0.9\linewidth]{m6_RF-1.png}
+\end{center}
+   \caption{}
+\label{fig:m6_RF_1}
+\end{figure}
+
+\begin{figure}[t]
+\begin{center}
+\includegraphics[width=0.9\linewidth]{m1_RF-2.png}
+\end{center}
+   \caption{}
+\label{fig:m1_RF_2}
+\end{figure}
+
+\begin{figure}[t]
+\begin{center}
+\includegraphics[width=0.9\linewidth]{m4_RF-2.png}
+\end{center}
+   \caption{}
+\label{fig:m4_RF_2}
+\end{figure}
+
+\begin{figure}[t]
+\begin{center}
+\includegraphics[width=0.9\linewidth]{m3_RF-2.png}
+\end{center}
+   \caption{}
+\label{fig:m3_RF_2}
+\end{figure}
+
+\begin{figure}[t]
+\begin{center}
+\includegraphics[width=0.9\linewidth]{m6_RF-2.png}
+\end{center}
+   \caption{}
+\label{fig:m6_RF_2}
+\end{figure}
+
+
+
+
+
+\end{document}

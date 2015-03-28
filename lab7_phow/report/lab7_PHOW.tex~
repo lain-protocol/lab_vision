@@ -1,0 +1,249 @@
+\documentclass[10pt,two column,letter paper]{article}
+\usepackage{cvpr}
+\usepackage{times}
+\usepackage{epsfig}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{cite}
+
+% Include other packages here, before hyperref.
+
+% If you comment hyperref and then uncomment it, you should delete
+% egpaper.aux before re-running latex.  (Or just hit 'q' on the first latex
+% run, let it finish, and you should be clear).
+\usepackage[breaklinks=true,bookmarks=false]{hyperref}
+
+\cvprfinalcopy % *** Uncomment this line for the final submission
+
+\def\cvprPaperID{****} % *** Enter the CVPR Paper ID here
+\def\httilde{\mbox{\tt\raisebox{-.5ex}{\symbol{126}}}}
+
+% Pages are numbered in submission mode, and unnumbered in camera-ready
+%\ifcvprfinal\pagestyle{empty}\fi
+\setcounter{page}{4321}
+\begin{document}
+
+%%%%%%%%% TITLE
+\title{Laboratory 7 - PHOW Classification}
+
+\author{Ricardo MENDOZA-LEON\\
+Universidad de los Andes\\
+Bogot\'{a} Colombia\\
+{\tt\small ra.mendoza35@uniandes.edu.co}
+}
+
+\maketitle
+%\thispagestyle{empty}
+
+
+
+%%%%%%%%% BODY TEXT
+\section{Dataset}
+In this lab, two datasets were used. The first one is Caltech101, which contains 102 classes
+totaling 3000 color images, with uneven number in each class. This are images of everyday
+scenes, but taken by photographers. Mayor variability is reflected in inter-class variability, 
+being most of the images in the same class very similar, with orientation normalized using
+cropping and rotations.
+
+The second dataset is a subset of imagenet-tiny dataset, which contains 200 classes totaling 20.000 
+color images, from Flickr. Contrary to Caltech101, this dataset has an even number of images
+in each class (100 in each class). Variability in this images is high; noteworthy is the
+intra-class variability (much more than Caltech101). Also the various scales and locations
+of classes, the multiplicity of instances that can appear in an image and the background
+complexity, make this dataset very complex and challenging.
+
+
+
+
+
+
+\section{Methods}
+The base recognition pipeline PHOW\_CALTECH101 implemented by Andrea Vedaldi, is very similar to the one described in the lab6. The mayor stages are:
+
+A) Dictionary creation: After image setup, this method, instead of using a bank of filters, the base descriptor is the Pyramid Histogram of Oriented Gradients (PHOG), that
+calculates histograms of gradient orientations for a number of regions inside a window centered at regular steps in the image. Given that is a multi-scale model
+(pyramid), this process divides the window along the $x$ and $y$ axis (spatial divisions $sDivX$, $sDivY$) at different heights or $levels$; the number
+of orientation bis are usually 8. With this procedure, a feature vector is extracted at each window location. Then, features are quantized to a number
+of given words $k$. In Andrea's pipeline, quantization is obtained by using k-means, then creates a space division tree (KD-Tree) as a lookup structure which
+ offers a very fast way to label new vectors (by traversing the tree ideally in log(k) steps).
+
+B) Classifier training and prediction: A set of binary classifiers is trained to recognize examples of each class. The classifiers used are SVMs with a  
+Stochastic Dual Coordinate Ascent SDCA kernel. Later, in the prediction step given a image representation, the class corresponding to the maximum confidence
+value for all classifiers is used to label the image. For tests in imagenet-tiny we used 90\% of images for training and 10\% for test.
+
+
+\section{Results and discussion}
+A first test was run using the caltech101 dataset with an equal
+number of images for training and test (15/15), using the default settings of Andrea's code ($k=$600 and two level PHOG with $sDivX=sDivY=[2,4]$) for 102 classes.
+The score matrix for train and test images, and the confusion matrix for the classification task are shown in figures ~\ref{fig:calt_A} and ~\ref{fig:calt_B}, 
+were it can be observed a global accuracy of 68.10\%. However, it can be noticed in the confusion matrix some classes whose accuracy is very low 
+(dark blue values at the diagonal), but its corresponding value in the train scores matrix is high, meaning over-fitting occurred
+for that class classifier. Noteworthy are the first five classes in the dataset that have almost 100\% accuracy.
+
+Different configurations of dictionary and spatial partitioning were tested on imagenet-tiny dataset. Figure ~\ref{fig:m1_imagenet_tiny} and ~\ref{fig:m1-2_imagenet_tiny},
+shows the results for imagenet-tiny dataset with parameters $k=$600 and two level PHOG with $sDivX=sDivY=[2,4]$ in 200 classes. The first thing to notice is the low
+accuracy obtained for this dataset, which is caused by the much higher variability, but also the higher granularity of the classes. For instance, the 
+chihuahua class had 0\% accuracy as shown in figure ~\ref{fig:m1_imagenet_tiny_chihuahua_1}. Furthermore, confusion and score matrices 
+(figure ~\ref{fig:m1_imagenet_tiny_chihuahua_2}) reveal misclassification with the class English\_springer (figure ~\ref{fig:English_springer}), which is
+and categorically close to Chihuahua (figure ~\ref{fig:chihuahua}). 
+
+An additional set of parameters: $k=$1200 and $sDivX=sDivY=[2, 4]$ in 200 classes, and $k=$600 with $sDivX=sDivY=[4, 8]$ in 50 classes, 
+was tested on the imagenet-tiny (figures ~\ref{fig:m2_imagenet_tiny} and ~\ref{fig:m2-2_imagenet_tiny}, and ~\ref{fig:m14_imagenet_tiny} and ~\ref{fig:m14-2_imagenet_tiny}),
+which improved the accuracy to 28.65\% and 37.40\% respectively. 
+
+An analysis of the effects of increasing the dictionary size and a finer spatial partitioning on the Chihuahua class, showed no 
+improvement for this class as seen the confusion and score matrices 
+(figures ~\ref{fig:m2_imagenet_tiny_chihuahua_10} and ~\ref{fig:m2_imagenet_tiny_chihuahua_2}, and ~\ref{fig:m14_imagenet_tiny_chihuahua_1} and ~\ref{fig:m14_imagenet_tiny_chihuahua_2}).
+However, we note the inclusion of the EntleBucher (another breed of dog) class ~\ref{fig:EntleBucher}. In conclusion the PHOG descriptor was incapable of representing
+the distinctive features for class Chihuahua dog, nonetheless the fact that misclassification are related with the same categorization (dogs) indicates that the 
+model is extracting some amount of the structural features of dogs. Similar results can also be seen with other classes in this dataset that are 
+hindering further improvements in accuracy.
+
+As possible improvements it is proposed: a) the inclusion of additional texture information (e.g. textons), b) color features and c) spatial and region
+information, using the result of a segmentation algorithm such as gPB-OWT-UCM.
+
+
+\begin{figure*}[t]
+\begin{center}
+\includegraphics[width=0.9\linewidth]{caltech101_baseline.png}
+\end{center}
+   \caption{}
+\label{fig:calt_A}
+\end{figure*}
+
+\begin{figure*}[t]
+\begin{center}
+\includegraphics[width=0.9\linewidth]{caltech101-2_baseline.png}
+\end{center}
+   \caption{}
+\label{fig:calt_B}
+\end{figure*}
+
+\begin{figure*}[t]
+\begin{center}
+\includegraphics[width=0.9\linewidth]{m1_imagenet_tiny.png}
+\end{center}
+   \caption{}
+\label{fig:m1_imagenet_tiny}
+\end{figure*}
+
+\begin{figure*}[t]
+\begin{center}
+\includegraphics[width=0.9\linewidth]{m1-2_imagenet_tiny.png}
+\end{center}
+   \caption{}
+\label{fig:m1-2_imagenet_tiny}
+\end{figure*}
+
+\begin{figure}[t]
+\begin{center}
+\includegraphics[width=0.9\linewidth]{m1_imagenet_tiny_chihuahua-1.png}
+\end{center}
+   \caption{}
+\label{fig:m1_imagenet_tiny_chihuahua_1}
+\end{figure}
+
+\begin{figure*}[t]
+\begin{center}
+\includegraphics[width=0.9\linewidth]{m1_imagenet_tiny_chihuahua-2.png}
+\end{center}
+   \caption{}
+\label{fig:m1_imagenet_tiny_chihuahua_2}
+\end{figure*}
+
+\begin{figure}[t]
+\begin{center}
+\includegraphics[width=0.9\linewidth]{chihuahua.JPEG}
+\end{center}
+   \caption{}
+\label{fig:chihuahua}
+\end{figure}
+
+\begin{figure}[t]
+\begin{center}
+\includegraphics[width=0.9\linewidth]{English_springer.JPEG}
+\end{center}
+   \caption{}
+\label{fig:English_springer}
+\end{figure}
+
+\begin{figure*}[t]
+\begin{center}
+\includegraphics[width=0.9\linewidth]{m2_imagenet_tiny.png}
+\end{center}
+   \caption{}
+\label{fig:m2_imagenet_tiny}
+\end{figure*}
+
+\begin{figure*}[t]
+\begin{center}
+\includegraphics[width=0.9\linewidth]{m2-2_imagenet_tiny.png}
+\end{center}
+   \caption{}
+\label{fig:m2-2_imagenet_tiny}
+\end{figure*}
+
+\begin{figure*}[t]
+\begin{center}
+\includegraphics[width=0.9\linewidth]{m14_imagenet_tiny.png}
+\end{center}
+   \caption{}
+\label{fig:m14_imagenet_tiny}
+\end{figure*}
+
+\begin{figure*}[t]
+\begin{center}
+\includegraphics[width=0.9\linewidth]{m14-2_imagenet_tiny.png}
+\end{center}
+   \caption{}
+\label{fig:m14-2_imagenet_tiny}
+\end{figure*}
+
+\begin{figure}[t]
+\begin{center}
+\includegraphics[width=0.9\linewidth]{m2_imagenet_tiny_chihuahua-1.png}
+\end{center}
+   \caption{}
+\label{fig:m2_imagenet_tiny_chihuahua_10}
+\end{figure}
+
+\begin{figure*}[t]
+\begin{center}
+\includegraphics[width=0.9\linewidth]{m2_imagenet_tiny_chihuahua-2.png}
+\end{center}
+   \caption{}
+\label{fig:m2_imagenet_tiny_chihuahua_2}
+\end{figure*}
+
+
+\begin{figure}[t]
+\begin{center}
+\includegraphics[width=0.9\linewidth]{m14_imagenet_tiny_chihuahua-1.png}
+\end{center}
+   \caption{}
+\label{fig:m14_imagenet_tiny_chihuahua_1}
+\end{figure}
+
+\begin{figure*}[t]
+\begin{center}
+\includegraphics[width=0.9\linewidth]{m14_imagenet_tiny_chihuahua-2.png}
+\end{center}
+   \caption{}
+\label{fig:m14_imagenet_tiny_chihuahua_2}
+\end{figure*}
+
+\begin{figure}[t]
+\begin{center}
+\includegraphics[width=0.9\linewidth]{EntleBucher.JPEG}
+\end{center}
+   \caption{}
+\label{fig:EntleBucher}
+\end{figure}
+
+
+
+
+
+
+\end{document}
